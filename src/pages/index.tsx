@@ -5,6 +5,7 @@ import Player from '../player/player';
 import Loader from '../player/format/hls/loader';
 import * as Chart from 'echarts';
 import { getPieOption } from './webUI';
+import { getSearchParams } from 'rax-app';
 
 let chart;
 
@@ -71,7 +72,8 @@ const MyComponent = () => {
     canuse: {
       sab: !!(window.SharedArrayBuffer),
       oc: !!(window.OffscreenCanvas),
-    }
+    },
+    playurl: new URLSearchParams(window.location.search).get('playurl') || '',
   });
   const {
     performanceStatus, 
@@ -81,6 +83,7 @@ const MyComponent = () => {
     isplaying, 
     bufferedTime,
     canuse,
+    playurl,
   } = state;
   const handlePlay = () => {
     (window as any).player.play();
@@ -148,9 +151,9 @@ const MyComponent = () => {
   }
 
   useEffect(() => {
-    chart = Chart.init(div.current, 'dark')
+    chart = Chart.init(div.current, 'dark');
     if (cav.current) {
-      const player = new Player('http://127.0.0.1:8083/playlist.m3u8', {
+      const player = new Player(playurl, {
         canvas: cav.current,
         baseTime: Loader.baseTime,
         // loader: Loader,

@@ -22,9 +22,7 @@ server {
             if ($request_method = 'OPTIONS') {
                 return 204;
             }
-            # index  index.html index.htm;
             autoindex on;    
-            # try_files index.html /a/b/c/d/e/;
         }
 
         location /a/b/c/d/e/ {
@@ -48,7 +46,6 @@ server {
             if ($request_method = 'OPTIONS') {
                 return 204;
             }
-            # index  index.html index.htm;
             autoindex on; 
         }
     }
