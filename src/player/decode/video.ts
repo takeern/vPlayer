@@ -17,6 +17,7 @@ const wasmPath = () => {
 }
 
 import { IPacket, IVideoFrame, IOption, NalUnitType } from "../constants";
+import Utils from "../utils";
 
 type IDecodeOption = IOption & {
   handleDecodeRecieve: (frame: IVideoFrame) => void;
@@ -145,6 +146,8 @@ export default class VideoDecoder {
       }
     }
 
+    // console.log('收到解码帧 pts: %f, renderTime: %f, ', obj.pts, renderTime, obj.buf_u.buffer, obj.buf_y.buffer, obj.buf_v.buffer)
+
     this.option.handleDecodeRecieve({
       ...obj,
       decodeTime,
@@ -179,7 +182,7 @@ export default class VideoDecoder {
           } else {
             const { count, drapCount,seekTime } = this.performanceState;
             const useTime = performance.now() - seekTime;
-            console.log('seekend', useTime, count, useTime / (count - drapCount), drapCount);
+            Utils.log('seekend', useTime, count, useTime / (count - drapCount), drapCount);
             this.performanceState.count = 0;
             this.performanceState.seekTime = 0;
             this.performanceState.drapCount = 0;
@@ -191,6 +194,10 @@ export default class VideoDecoder {
           this.performanceState.drapCount++;
         } else {
           // this.state.lastSendPts = PTS;
+          if ((self as any).nodecode) {
+            return;
+          } 
+          // console.log('发送解码pak, pts: %f, rendTime: %.2f, len: %f', PTS, parseFloat((PTS / 90000).toFixed(2)), data_byte.byteLength, data_byte.buffer);
           const fileSize = data_byte.length;
           const ptr = this.instance._malloc(fileSize);
           this.instance.HEAPU8.set(data_byte, ptr);

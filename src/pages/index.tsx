@@ -5,7 +5,6 @@ import Player from '../player/player';
 import Loader from '../player/format/hls/loader';
 import * as Chart from 'echarts';
 import { getPieOption } from './webUI';
-import { getSearchParams } from 'rax-app';
 
 let chart;
 
@@ -69,6 +68,7 @@ const MyComponent = () => {
     frameInfo: null,
     isplaying: false,
     bufferedTime: null,
+    canplay: false,
     canuse: {
       sab: !!(window.SharedArrayBuffer),
       oc: !!(window.OffscreenCanvas),
@@ -84,6 +84,7 @@ const MyComponent = () => {
     bufferedTime,
     canuse,
     playurl,
+    canplay,
   } = state;
   const handlePlay = () => {
     (window as any).player.play();
@@ -103,7 +104,11 @@ const MyComponent = () => {
   }
 
   const handleCanplay = () => {
-    getPerformanceStatus()
+    getPerformanceStatus();
+    setState(pstate => ({
+      ...pstate,
+      canplay: true,
+    }));
     setInterval(() => {
       getPerformanceStatus();
     }, 1000);
@@ -173,6 +178,7 @@ const MyComponent = () => {
   }, []);
   return (
     <View className="container">
+      {!canplay && <Loading />}
       <div className='canuseWrap'>
         <div className={`${!canuse.sab ? 'canuse_error' : ''}`}>{`SharearryBuffer ${!canuse.sab ? 'not' : ''} ready`}</div>
         <div className={`${!canuse.oc ? 'canuse_error' : ''}`}>{`OffscreenCanvas ${!canuse.oc ? 'not' : ''} ready`}</div>
@@ -212,3 +218,12 @@ const MyComponent = () => {
 
 export default MyComponent;
 
+
+
+const Loading = () => {
+  return (
+    <div className="loadingio-spinner-spin-dmvtdca2aj"><div className="ldio-wn0659u2uqr">
+      <div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div>
+    </div></div>
+  );
+}

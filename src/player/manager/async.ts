@@ -272,6 +272,8 @@ export default class AsyncManager {
 
     if (frame.renderTime > this.playerState.currentTime && this.playerState.shouldRenderPoster) {
       this.playerState.shouldRenderPoster = false;
+      this.playerState.currentTime = frame.renderTime;
+      this.emitTimeUpdateEventTh();
       this.renderVideoFrame(frame.renderTime);
     }
 

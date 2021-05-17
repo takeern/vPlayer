@@ -21,6 +21,7 @@ export default class AudioDecoder {
   }
 
   public appendAudioBuffer(data: IPacket) {
+    // console.log('收到pak', data.PTS, data.data_byte.byteLength)
     if (this.state.flushing) return;
 
     if (!this.aduioFrameStartTime) {
@@ -61,14 +62,27 @@ export default class AudioDecoder {
     } 
   }
 
+  // todo 修复音频问题
   private async decodeAudioData() {
     if (!this.audioBuffer?.byteLength) return;
+
     const audioPts = this.aduioFrameStartTime;
+    // console.log('添加 buffer', this.audioBuffer, this.audioBuffer.byteLength, audioPts);
     this.aduioFrameStartTime = null;
     this.state.appendTimes += 1;
-    this.actx.decodeAudioData(this.audioBuffer, buffer => {
+    const sendbuffer = this.audioBuffer.slice(0);
+    // console.log('送入buffer', sendbuffer.byteLength)
+    this.actx.decodeAudioData(sendbuffer, buffer => {
       this.state.appendTimes -= 1;
-
+      const frames = window.player.manager.asyncManager.audioFrames;
+      let times = 0;
+      if (frames[frames.length - 1]?.duration) {
+        times = frames[frames.length - 1]?.duration + frames[frames.length - 1]?.ptsTime - audioPts * this.option.baseTime;
+        if (Math.abs(times) > 0.01) {
+          console.warn('音频解码误差，', times);
+          console.log(`解码后， buffer 长度:%f, 时间差：%f, pts: %f, 起始时间戳%f`, buffer.duration, times, audioPts, audioPts * this.option.baseTime);
+        }
+      }
       if (this.state.flushing) {
         if (this.state.appendTimes === 0) {
           this.state.flushing = false;
@@ -77,6 +91,7 @@ export default class AudioDecoder {
         this.event.emit(ManagerEvent.GETAUDIOFRAME, {
           buffer,
           pts: audioPts,
+          duration: buffer.duration,
           ptsTime: audioPts * this.option.baseTime,
         });
       }

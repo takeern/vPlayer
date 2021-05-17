@@ -12,6 +12,8 @@ interface IState {
   readers: {
     [prop: string]: ReadableStreamDefaultReader<Uint8Array>,
   },
+  bf: ArrayBuffer;
+  recieveBfLen: number;
 }
 
 interface IOption {
@@ -22,6 +24,8 @@ export default class HttpLoader {
   private state: IState = {
     flusing: false,
     readers: {},
+    bf: new ArrayBuffer(0),
+    recieveBfLen: 0, // 设置为 0，表示 每个url 的资源加载完，才会返回
   }
 
   constructor(private option: IOption) {}
@@ -57,26 +61,60 @@ export default class HttpLoader {
     if (type.includes('video')) {
       const reader = res.body.getReader();
       this.state.readers[url] = reader;
-      return this.getBuffer(reader, url);
+      return this.newGetbf(reader, url);
     }
   }
 
-  private async getBuffer(reader: ReadableStreamDefaultReader<Uint8Array>, url: string) {
+  // private async getBuffer(reader: ReadableStreamDefaultReader<Uint8Array>, url: string) {
+  //   let done = false;
+  //   while (!done) {
+  //     const res = await reader.read();
+  //     done = res.done;
+  
+  //     if (done) {
+  //       this.state.readers[url] && delete this.state.readers[url];
+  //     }
+
+  //     console.log('defualt buffer', res.value?.buffer);
+  //     // 阻塞关键点
+  //     await this.option.channel.pipe({
+  //       data: res.value?.buffer,
+  //       url,
+  //       done,
+  //     });
+  //   }
+  // }
+
+  private async newGetbf(reader: ReadableStreamDefaultReader<Uint8Array>, url: string) {
     let done = false;
     while (!done) {
       const res = await reader.read();
       done = res.done;
   
+      const emitBf = async () => {
+        const buffer = this.state.bf.slice(0);
+        this.state.bf = new ArrayBuffer(0);
+        await this.option.channel.pipe({
+          data: buffer,
+          url,
+          done,
+        });
+      };
+
       if (done) {
         this.state.readers[url] && delete this.state.readers[url];
-      }
+        await emitBf();
+      } else {
+        // copy bf
+        const view = new Uint8Array((res.value?.buffer.byteLength | 0) + (this.state.bf.byteLength | 0));
+        view.set(new Uint8Array(this.state.bf), 0);
+        view.set(new Uint8Array(res.value?.buffer), (this.state.bf.byteLength | 0));
+        this.state.bf = view.buffer;
 
-      // 阻塞关键点
-      await this.option.channel.pipe({
-        data: res.value?.buffer,
-        url,
-        done,
-      });
+        if (this.state.recieveBfLen && this.state.recieveBfLen < this.state.bf.byteLength) {
+          await emitBf();
+        }
+      }
     }
   }
 }

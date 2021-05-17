@@ -45,8 +45,7 @@ export default class WorkerRenderManager {
           }
         }
 
-        if (frame.pts !== payload.pts) {
-          // debugger
+        if (!frame || frame.pts !== payload.pts) {
           console.warn('未找到准确帧', payload.pts, [...datas], frame);
           return;
         }

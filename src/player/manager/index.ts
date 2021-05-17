@@ -109,7 +109,7 @@ export default class PlayerManager {
     }
 
     this.worker.onmessage = this.handleWorkerMsg.bind(this);
-    this.worker.onerror = (e) => console.log(e);
+    // this.worker.onerror = (e) => { throw e };
   }
 
   public async run() { 

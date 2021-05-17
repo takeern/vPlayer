@@ -221,7 +221,7 @@ export default class HlsLoader extends Loader {
   }
 
   private handleRecievePacket(data: IPes) {
-    const { currentIndex } = this.state;
+    // const { currentIndex } = this.state;
     const packet = {
       DTS: data.pes.DTS,
       PTS: data.pes.PTS,
@@ -229,7 +229,7 @@ export default class HlsLoader extends Loader {
     }
     switch (data.stream_type) {
       case 36:
-        if (currentIndex === 0 && !this.metaState.videoStartTime) {
+        if (!this.metaState.videoStartTime) {
           this.metaState.videoStartTime = packet.PTS * HlsLoader.baseTime;
           this.sendMetadataEvent();
         }
@@ -240,7 +240,7 @@ export default class HlsLoader extends Loader {
       case 15:
       case 17:
         // 解析音频
-        if (currentIndex === 0 && !this.metaState.audioStartTime) {
+        if (!this.metaState.audioStartTime) {
           this.metaState.audioStartTime = packet.PTS * HlsLoader.baseTime;
           this.sendMetadataEvent();
         }
