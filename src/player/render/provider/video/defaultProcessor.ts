@@ -1,5 +1,5 @@
 import { IConfig } from './';
-import { IVideoFrame } from 'src/constants';
+import { IVideoFrame } from '../../../constants';
 // import { IVideoFrame } from 'src/manager/asyncManager';
 export default class DefaultProcessor {
   public performanceState = {
@@ -47,10 +47,15 @@ export default class DefaultProcessor {
         const frame = videoFrames[index + 1];
         this.selectFrame(frame);
         const errorTime = frame.renderTime - currentTime;
+        // console.log('当前时间: %f, 选择时间: %f', currentTime, frame.renderTime, errorTime);
         this.performanceState.renderCount++;
-        this.performanceState.renderAvgErrorTime =
-          Number(((this.performanceState.renderAvgErrorTime * this.performanceState.renderCount + errorTime)
-          / this.performanceState.renderCount));
+        if (this.performanceState.renderCount > 1) {
+          this.performanceState.renderAvgErrorTime =
+            (this.performanceState.renderAvgErrorTime * (this.performanceState.renderCount - 1) + errorTime)
+              / this.performanceState.renderCount;
+        } else {
+          this.performanceState.renderAvgErrorTime = errorTime;
+        }
         // this.performanceState.renderAvgErrorTime = Number(this.performanceState.renderAvgErrorTime.toFixed(2));
         videoFrames.length = index + 1;
         return {
@@ -59,7 +64,6 @@ export default class DefaultProcessor {
         };
       }
     } else {
-      console.log('清空所有内存', [...videoFrames]);
       let clearLen = videoFrames.length;
       videoFrames.length = 0;
       return {

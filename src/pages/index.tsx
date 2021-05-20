@@ -26,7 +26,7 @@ enum Tagnames {
 
 enum Scale {
   decodeAvgTime = 'ms',
-  renderAvgErrorTime = 'ms',
+  renderAvgErrorTime = 's',
   duration = 's',
   startTime = 's',
   currentTime = 's',

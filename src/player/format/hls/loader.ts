@@ -1,4 +1,4 @@
-import { Loader } from '../../constants/interface';
+import { Loader } from '../../constants';
 import M3U8Parse, { IM3U8Manifest } from "./demux/M3U8Parse";
 import { WorkerEvent, ERROR_MSG, PlayerEvent, loaderStatus, ManagerEvent } from '../../constants';
 import Demuxer, { IPes } from './demux/tsDemuxer';
